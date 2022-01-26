@@ -1,16 +1,19 @@
-%% with displacement
+%% calculates area with displacement corrections
+% inputs: 
+%        -file_df: the 
 function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction(file_df, save_name)
     Time = file_df.Time;
-    disp = file_df.LoadingPlattenDisplacement;
+    disp_HG = file_df.LoadingPlattenDispHighGain;
+    disp_LG = file_df.LoadingPlattenDisplacement;
     shear = file_df.LoadCell;
     comp = file_df.LVDT3;
 
     figure(1)
     subplot(2,1,1)
-    plot(disp, shear)
+    plot(Time, disp_LG)
     xlabel('Displacement (mm)')
     ylabel('Shear Load (MPa)')
-    ylim([-1,3])
+    %ylim([-1,3])
     subplot(2,1,2)
     plot(Time,shear)
     xlabel('Time')
@@ -28,7 +31,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     [end_time, load_at_end] = ginput(1);
 
     I = (Time > start_time & Time < end_time);
-    exp_disp = disp(I);
+    exp_disp = disp_HG(I);
     exp_disp = exp_disp - exp_disp(1);
     exp_time = Time(I);
     exp_comp = comp(I);
@@ -40,13 +43,13 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     comp_corr = (exp_comp.^2 - (exp_disp).^2).^(1/2);
     area_corr = L_height * L_width;
 
-    area = NaN(length(disp), 1);
+    area = NaN(length(disp_HG), 1);
     area(I) = area_corr;
     comp_fin = comp;
     comp_fin(I) = comp_corr;
 
     f = figure(1);
-    f.WindowState = 'maximized';
+    %f.WindowState = 'maximized';
     subplot(2,1,1)
     plot(exp_time,area_corr);
     xlabel('Time (s)')

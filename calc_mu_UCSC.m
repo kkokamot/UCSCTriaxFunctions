@@ -20,11 +20,11 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     %area = area(file_df.Time > start_time & file_df.Time < end_time);
 
     if reply == 'Y'
-        [shear, shear_dc] = area_correction_ucsc(file_df.LoadCell,90, area); 
+        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress,90, area); 
         friction = (shear)./(file_df.ConfiningPressure-file_df.PorePressure2);
         friction_dc = (shear_dc)./(file_df.ConfiningPressure-file_df.PorePressure2);
     else
-        [shear, shear_dc] = area_correction_ucsc(file_df.LoadCell,90, area);
+        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress,90, area);
         friction = (shear)./(file_df.ConfiningPressure);
         friction_dc = (shear_dc)./(file_df.ConfiningPressure);
     end
