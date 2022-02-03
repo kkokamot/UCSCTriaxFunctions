@@ -1,6 +1,6 @@
 # UCSCTriaxFunctions
 
-These functions are used in analyzing friction data from the UCSC triaxial deformation apparatus in matlab. The function readUCSCtriax.m reads in autolab data (ignores headerlines). The displacement_correction.m function calculates area change during shear. 
+These functions are used in analyzing friction data from the UCSC triaxial deformation apparatus in matlab. The function %readUCSCtriax% reads in autolab data (ignores headerlines). The displacement_correction.m function calculates area change during shear. 
 
 The function area_correction_ucsc.m calculates shear stress during the experiment by calculating the shear force and then diving by the sample area. This returns both shear stress without the displacement corrected area and with the displacement corrected area. 
 
