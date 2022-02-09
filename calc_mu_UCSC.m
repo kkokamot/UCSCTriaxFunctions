@@ -11,7 +11,7 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     %%% find friction
 
     % area change with displacement correction
-    [area, comp, start_time, end_time, load_at_start, load_at_end] = displacement_correction(file_df, save_name);
+    [area, comp, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, save_name);
 
     % zero load cell
     file_df.LoadCell = file_df.LoadCell - mean([load_at_start,load_at_end]);

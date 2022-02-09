@@ -1,7 +1,7 @@
 %% calculates area with displacement corrections
 % inputs: 
 %        -file_df: the 
-function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction(file_df, save_name)
+function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, save_name)
     Time = file_df.Time;
     disp_HG = file_df.LoadingPlattenDispHighGain;
     disp_LG = file_df.LoadingPlattenDisplacement;
@@ -40,7 +40,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
 
     L_height = (48-exp_disp) * 0.001; %50 mm - 1 mm for each indium block - disp
 
-    comp_corr = (exp_comp.^2 - (exp_disp).^2).^(1/2);
+    comp_corr = ((exp_comp+10).^2 - (exp_disp).^2).^(1/2)
     area_corr = L_height * L_width;
 
     area = NaN(length(disp_HG), 1);
@@ -56,13 +56,16 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     ylabel('Area (m^2)')
     subplot(2,1,2)
     plot(exp_time, comp_corr);
-    plot(Time, comp);
+    hold on
+    plot(exp_time,comp+10);
     xlabel('Time (s)')
     ylabel('Compaction (mm)')
     try
-        saveas(1, save_name + '_corrections.jpg')
+        saveas(1, save_name + '_disp_corrections.jpg')
+        savefig(save_name + '_disp_corrections.fig')
     catch
         save_name = convertCharsToStrings(save_name);
-        saveas(1, save_name + '_corrections.jpg')
+        saveas(1, save_name + '_disp_corrections.jpg')
+        savefig(save_name + '_disp_corrections.fig')
     end
 
