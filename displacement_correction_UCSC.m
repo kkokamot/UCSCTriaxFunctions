@@ -6,7 +6,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     disp_HG = file_df.LoadingPlattenDispHighGain;
     disp_LG = file_df.LoadingPlattenDisplacement;
     shear = file_df.LoadCell;
-    comp = file_df.LVDT3;
+    comp = file_df.LVDT3+10;
 
     figure(1)
     subplot(2,1,1)
@@ -40,7 +40,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
 
     L_height = (48-exp_disp) * 0.001; %50 mm - 1 mm for each indium block - disp
 
-    comp_corr = ((exp_comp+10).^2 - (exp_disp).^2).^(1/2)
+    comp_corr = ((exp_comp).^2 - (exp_disp).^2).^(1/2)
     area_corr = L_height * L_width;
 
     area = NaN(length(disp_HG), 1);
@@ -57,7 +57,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     subplot(2,1,2)
     plot(exp_time, comp_corr);
     hold on
-    plot(exp_time,comp+10);
+    plot(exp_time,comp);
     xlabel('Time (s)')
     ylabel('Compaction (mm)')
     try
