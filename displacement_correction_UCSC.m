@@ -1,14 +1,14 @@
 %% calculates area with displacement corrections
 % inputs: 
 %        -file_df: the 
-function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, save_name)
+function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, fig_num, save_name)
     Time = file_df.Time;
     disp_HG = file_df.LoadingPlattenDispHighGain;
     disp_LG = file_df.LoadingPlattenDisplacement;
     shear = file_df.LoadCell;
     comp = file_df.LVDT3+10;
 
-    figure(1)
+    figure(fig_num)
     subplot(2,1,1)
     plot(Time, disp_LG)
     xlabel('Displacement (mm)')
@@ -40,7 +40,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
 
     L_height = (48-exp_disp) * 0.001; %50 mm - 1 mm for each indium block - disp
 
-    comp_corr = ((exp_comp).^2 - (exp_disp).^2).^(1/2)
+    comp_corr = ((exp_comp).^2 - (exp_disp).^2).^(1/2);
     area_corr = L_height * L_width;
 
     area = NaN(length(disp_HG), 1);
@@ -48,7 +48,8 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     comp_fin = comp;
     comp_fin(I) = comp_corr;
 
-    f = figure(1);
+    figure(fig_num);
+    %f = figure(1);
     %f.WindowState = 'maximized';
     subplot(2,1,1)
     plot(exp_time,area_corr);
@@ -57,15 +58,17 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     subplot(2,1,2)
     plot(exp_time, comp_corr);
     hold on
-    plot(exp_time,comp);
+    plot(exp_time,exp_comp);
+    hold off
     xlabel('Time (s)')
     ylabel('Compaction (mm)')
+    legend({'Corrected', 'Uncorrected'})
     try
-        saveas(1, save_name + '_disp_corrections.jpg')
+        saveas(fig_num, save_name + '_disp_corrections.jpg')
         savefig(save_name + '_disp_corrections.fig')
     catch
         save_name = convertCharsToStrings(save_name);
-        saveas(1, save_name + '_disp_corrections.jpg')
+        saveas(fig_num, save_name + '_disp_corrections.jpg')
         savefig(save_name + '_disp_corrections.fig')
     end
 

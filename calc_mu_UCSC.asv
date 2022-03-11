@@ -94,7 +94,7 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
 
     % save final friction values figure
     saveas(fig_number, save_name + '_correction_comparison.jpg')
-    savefig(save_name + '_correction_comparison.fig')
+    savefig(fig_number, save_name + '_correction_comparison.jpg')
 
     disp_um = file_df.LoadingPlattenDispHighGain*10^3;
     fric = file_df.friction_dc;
