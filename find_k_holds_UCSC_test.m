@@ -2,14 +2,10 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
     %this function finds the stiffness of loadup, reload, hold times, healing, and relaxation of an experiment
     %
     %Inputs:
-    %file_df: an experiment in table format. This should already be processed to includefile_df.friction values
+    %file_df: an experiment in table format. This should already be processed to include values
     %fig_num: figure number of first figure (figures numbered lower than fig_num will not be changed, while figures numbered higher than fig_num will be overwritten)
     %title_text: the title for the stiffness figure output
     %save_file: the title of the mat file output
-    %dc: True/False input for whether to use displacement control
-    %Note: start (negative) and end (postive) thresholds are typically around 4
-    %but depend on movmean, so if you change movmean parameters then
-    %thresholds must be adjusted
     %
     %Outputs:
     %k_loadup: stiffness of the system when loading the sample
@@ -26,8 +22,6 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
     %fit as a point underneath maximum healing)
     hold_picks = load("UC" + exp_num + "hold_picks.mat");
    
-
-    
     figure(fig_num)
     file_df.LoadingPlattenDispHighGain = file_df.LoadingPlattenDispHighGain*1000;
     plot(file_df.LoadingPlattenDispHighGain, file_df.friction)
