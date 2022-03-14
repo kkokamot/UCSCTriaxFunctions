@@ -43,7 +43,7 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     plot(file_df.Time, file_df.friction);
     xlabel('Time (s)')
     ylabel('\mu')
-    title('Cut time to show just the results you want')
+    title('Cut time at beginning and end. The beginning point will zero all friction readings.')
     subplot(2,1,2)
     plot(file_df.Time, file_df.friction_dc);
     ylabel('\mu')
