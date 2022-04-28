@@ -1,5 +1,5 @@
 %%
-function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, save_name)
+function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
     %%%
     %%%
     reply = input('Was pore pressure used during the experiment? Y/N [Y]: ', 's');
@@ -11,13 +11,13 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     %%% find friction
 
     % area change with displacement correction
-    [area, comp, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, fig_number+1, save_name);
-
+    [area, ~, start_time, end_time, ~, ~] = displacement_correction_UCSC(file_df, fig_number+1, save_name);
+    %area = 0.001829;
     % zero load cell
-    file_df.LoadCell = file_df.LoadCell - mean([load_at_start,load_at_end]);
+    %file_df.DifferentialStress = file_df.DifferentialStress  %- mean([load_at_start,load_at_end]);
 
     %file_df = file_df(file_df.Time > start_time & file_df.Time < end_time, :);
-    %area = area(file_df.Time > start_time & file_df.Time < end_time);
+   % area = area(file_df.Time > start_time & file_df.Time < end_time);
 
     if reply == 'Y'
         [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress,90, area);
@@ -33,19 +33,24 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
         friction_dc = (shear_dc)./(file_df.ConfiningPressure);
     end
 
-    temp_table = table(shear, shear_dc, comp, friction, friction_dc, friction_pac);
+    %temp_table = table(shear, shear_dc, comp, friction, friction_dc, friction_pac);
+    temp_table = table(shear, shear_dc, friction, friction_dc, friction_pac);
     file_df = [file_df temp_table];
 
     %%% plot friction values
     f = figure(fig_number);
     f.WindowState = 'maximized';
     subplot(2,1,1)
-    plot(file_df.Time, file_df.friction);
+    plot(file_df.Time, file_df.ConfiningPressure);
+    if reply == 'Y'
+        hold on
+        plot(file_df.Time, file_df.PorePressure2);
+    end
     xlabel('Time (s)')
-    ylabel('\mu')
+    ylabel('Pressure (MPa)')
     title('Cut time at beginning and end. The beginning point will zero all friction readings.')
     subplot(2,1,2)
-    plot(file_df.Time, file_df.friction_dc);
+    plot(file_df.Time, file_df.friction);
     ylabel('\mu')
     xlabel('Time (s)')
     ylim([-0.2 1])
@@ -56,8 +61,9 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     file_df.friction_dc = file_df.friction_dc - file_df.friction_dc(1);
     file_df.friction_pac = file_df.friction_pac - file_df.friction_pac(1);
 
-    %close(fig_number)
-    figure(fig_number)
+    close(fig_number)
+    f = figure(fig_number);
+    f.WindowState = 'maximized';    
     subplot(2,1,1)
     plot(file_df.LoadingPlattenDispHighGain, file_df.friction_dc, 'LineWidth', 1.5)
     hold on
@@ -66,7 +72,11 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     hold off
     ylabel('\mu')
     xlabel('High Gain Displacement (mm)')
-    title('Final Friction Values')
+    if reply == 'Y'
+        title("Final Friction Values Pc_ = " + round(max(file_df.ConfiningPressure)) + ' P_p = ' + round(max(file_df.PorePressure2)))
+    else
+        title("Final Friction Values Pc_ = " + round(max(file_df.ConfiningPressure)) + ' P_p = 0')
+    end
     legend([compose('displacement\ncorrected'), 'not corrected', 'from Pac'], 'Location', 'southeast')
     ax = gca();
     ax.LineWidth = 2;
@@ -97,7 +107,7 @@ function [file_df, start_time, end_time] = calc_mu_UCSC(file_df, fig_number, sav
     savefig(save_name + '_correction_comparison.fig')
 
     disp_um = file_df.LoadingPlattenDispHighGain*10^3;
-    fric = file_df.friction_dc;
+    fric = file_df.friction;
     if reply == 'Y'
         normalstress = file_df.ConfiningPressure - file_df.PorePressure2;
     else
