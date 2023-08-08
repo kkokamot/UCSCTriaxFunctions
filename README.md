@@ -1,6 +1,6 @@
 # UCSC Triax Functions
 
-These functions are used in analyzing friction data from the UCSC triaxial deformation apparatus in matlab.  
+These functions are used to analyze friction data from the UCSC Autolab 2000 in matlab.  
 
 The function **readUCSCtriax** reads in autolab data as a matlab table (ignores headerlines). 
 
