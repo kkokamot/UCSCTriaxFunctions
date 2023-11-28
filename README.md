@@ -2,7 +2,7 @@
 
 These functions are used in analyzing friction data from the UCSC triaxial deformation apparatus in matlab.  
 
-The function **readUCSCtriax** reads in autolab data as a matlab table (ignores headerlines) and creates a column for OG_Index. The OG_Index is used to keep track of any chosen location (e.g. start/stop of hold) in the future in order to be able to find the location in any subset of the data.
+The function **readUCSCtriax** reads in autolab data as a matlab table (ignores headerlines) and creates a column called OG_Index. The OG_Index is used to keep track of any chosen location (e.g. start/stop of hold) in the future in order to be able to find the location in any subset of the data.
 
 **displacement_correction** function calculates area change during shear. This is often not used because it is not clear how the area actually changes during the experiment (This assumes more area with displacement. But additional area is not occuring in places with teeth, so maybe less area with displacement? or does it somehow balance).
 
