@@ -4,7 +4,7 @@ These functions are used in analyzing friction data from the UCSC triaxial defor
 
 The function **readUCSCtriax** reads in autolab data as a matlab table (ignores headerlines). 
 
-**displacement_correction** function calculates area change during shear.  
+**displacement_correction** function calculates area change during shear. This is often not used because it is not clear how the area actually changes during the experiment (This assumes more area with displacement. But additional area is not occuring in places with teeth, so maybe less area with displacement? or does it somehow balance).
 
 **area_correction_ucsc** calculates shear stress during the experiment by calculating the shear force and then dividing by the sample area. This returns both shear stress without the displacement corrected area and with the displacement corrected area.
 
