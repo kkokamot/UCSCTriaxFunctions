@@ -10,18 +10,20 @@ The function **readUCSCtriax** reads in autolab data as a matlab table (ignores 
 
 **calc_mu_UCSC** uses both the displacement correction and area correction functions to calculate friction (mu). It plots displacement corrected friction as well as non displacement corrected friction. It also plots the area correction and the displacement correction to LVDT3 (compaction). It saves these figures as well as the final experiment table.  The final experiment table is the initial experiment table with added columns for shear, shear_dc (displacement corrected), comp (LVDT3 displacement corrected), friction, friction_dc (displacement corrected), and friction as calculated from the axial control pressure.
 
-**find_holds** creates a mat file of all the hold locations.
+**find_holds** creates a mat file of the start and stop location of each hold. It does this first with a crude automatic method and then zooms into each hold, so you can hand-pick the best start and stop point.
 
-**find_k_holds** uses the mat file from find_holds to find the stiffness of each hold as well as delta_mu, delta_mu_c for various steady state possibilities.
+**find_ss_and_max** creates a mat file of the post-hold steady state values (in order to compare to pre-hold steady state) and the peak friction on the re-slide (in order to calculate healing). In orer to use this, you must have already used find_holds.
 
 **plot_overlapping_holds** uses the mat file from find_holds to plot the decay curve for all the holds both in linear space and log(time) space
+
+In addition, there are lots of other plotting tools.
 
 Typically, **readUCSCtriax** and **calc_mu_UCSC** are used for each experiment. For example: 
 
                             test1 = readUCSCtriax('UC0001.csv');  
                             [test1_final, start_time, end_time] = calc_mu_UCSC(test1, 1, 'UC0001');
 
-To measure healing you can use these 
+To measure healing you can use these functions.
 
                             find_holds(test1, auto_find_threshold, figure_num, '[enter exp_name]')
                             find_ss_and_max(test1, "[enter exp_num]")
