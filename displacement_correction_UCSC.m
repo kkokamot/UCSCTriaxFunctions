@@ -1,6 +1,7 @@
 %% calculates area with displacement corrections
 % inputs: 
 %        -file_df: the 
+
 function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = displacement_correction_UCSC(file_df, fig_num, save_name)
     Time = file_df.Time;
     disp_HG = file_df.LoadingPlattenDispHighGain;
@@ -18,7 +19,7 @@ function [area, comp_fin, start_time, end_time, load_at_start, load_at_end] = di
     plot(Time,shear)
     xlabel('Time')
     ylabel('Shear Load (MPa)')
-    ylim([-1,3])
+    ylim([-10,3])
     
     title('Pick the start of sample displacement')
     [start_time, load_at_start] = ginput(1);

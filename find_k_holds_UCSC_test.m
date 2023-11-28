@@ -70,12 +70,24 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
     r_time = T_end_f; r_disp = disp_end_f;
     ss_value = start_friction_f;
     h_time = zeros(1,length(hold_time)); h_disp = zeros(1,length(hold_time));
+    load("UC" + exp_num + "healing_picks.mat", 'detrend_pf');
     for i = 1:length(hold_time)
-        window_df = file_df(file_df.Time < end_window(i) & file_df.Time > T_hold_f(i)+10,:);
+        window_df = file_df(file_df.Time < end_window(i)+80 & file_df.Time > T_hold_f(i),:);
         steadystate_df = file_df(file_df.Time < start_window(i) + 8 & file_df.Time > start_window(i) +2.5,:);
         steadystate_df_post = file_df(file_df.Time < end_window(i) + 8 & file_df.Time > end_window(i) +2.5,:);
+        
         if length(steadystate_df_post.Time) == 0
             steadystate_df_post = file_df(file_df.Time < end_window(i)+8 & file_df.Time > end_window(i),:);
+        end
+
+        %detrend
+        if detrend_pf(1,i) ~= 0
+            pv = polyval(detrend_pf(:,i)', window_df.Time);
+            ss_pv = polyval(detrend_pf(:,i)', steadystate_df.Time);
+            ss_post_pv = polyval(detrend_pf(:,i)', steadystate_df_post.Time);
+            window_df.friction = window_df.friction - pv + ss_value(i);
+            steadystate_df.friction = steadystate_df.friction - ss_pv + ss_value(i);
+            steadystate_df_post.friction = steadystate_df_post.friction - ss_post_pv + ss_value(i);
         end
 
         ss_mu_mean = movmean(steadystate_df.friction, 50);
@@ -104,7 +116,13 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
  
     
     for i = 1:length(hold_time)
-        window_df = file_df(file_df.Time < end_window(i) & file_df.Time > T_hold_f(i),:);
+        window_df = file_df(file_df.Time < end_window(i)+80 & file_df.Time > T_hold_f(i),:);
+        
+        if detrend_pf(1,i) ~= 0
+            pv = polyval(detrend_pf(:,i)', window_df.Time);
+            window_df.friction = window_df.friction - pv + ss_value(i);
+        end
+
         whole_hold_df = file_df(file_df.Time < end_window(i) + 100 & file_df.Time > T_hold_f(i) - 100,:);
         figure(fig_num+3+i)
         subplot(2,1,1)
@@ -122,7 +140,7 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
         hold off
         
         subplot(2,1,2)
-        plot(whole_hold_df.Time, whole_hold_df.friction)
+        plot(window_df.Time, window_df.friction)
         hold on
         plot(h_time(i), ss_value_mid(i),'o')
         plot(h_time(i), ss_value_post(i), 'o')
@@ -200,8 +218,9 @@ function [k_loadup, k_reload, hold_time, delta_mu, delta_mu_c] = find_k_holds_UC
     k_reload = zeros(length(disp_start_f),1);
     figure(fig_num)
     for i = 1:length(disp_start_f)
-        reload_disp = file_df.LoadingPlattenDispHighGain(file_df.LoadingPlattenDispHighGain > disp_end_f(i)+2.5 & file_df.LoadingPlattenDispHighGain < disp_end_f(i) +15);
-        reload_fric = file_df.friction(file_df.LoadingPlattenDispHighGain > disp_end_f(i)+2.5 & file_df.LoadingPlattenDispHighGain < disp_end_f(i) +15);
+        limits = (file_df.LoadingPlattenDispHighGain > disp_end_f(i)+2.5 & file_df.LoadingPlattenDispHighGain < disp_end_f(i) +15);
+        reload_disp = file_df.LoadingPlattenDispHighGain(limits)
+        reload_fric = file_df.friction(limits)
         [pf_vals, ~] = polyfit(reload_disp, reload_fric,1);
         k_reload(i) = pf_vals(1);
         k_fit = polyval(pf_vals, reload_disp);

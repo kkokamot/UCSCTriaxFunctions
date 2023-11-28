@@ -1,0 +1,118 @@
+function plot_ppholds(exp_num, title_text, fig_num, LVDT_num, remove_longterm_trend, col)
+    hold_picks = load("UC" + exp_num + "hold_picks.mat");
+    load("UC" + sprintf('%04d', exp_num) + ".mat");
+    hold_picks.start_hold_T = file_df.Time(ismember(file_df.OG_Index, hold_picks.start_hold_index))';
+    hold_picks.end_hold_T = file_df.Time(ismember(file_df.OG_Index, hold_picks.end_hold_index))';
+    hold_picks.start_hold_disp = file_df.LoadingPlattenDispHighGain(ismember(file_df.OG_Index, hold_picks.start_hold_index))';
+    hold_picks.end_hold_disp = file_df.LoadingPlattenDispHighGain(ismember(file_df.OG_Index, hold_picks.end_hold_index))';
+    start_hold_mu = file_df.friction(ismember(file_df.OG_Index, hold_picks.start_hold_index));
+
+    pp_disp = movmean(file_df.PorePressure1Displacement, 100); %file_df.PorePressure1Displacement; %
+    pp_disp_2 = movmean(file_df.PorePressure2Displacement,100); %file_df.PorePressure2Displacement; %
+    pp_vol = pi*(25.4/2)^2*pp_disp/(38.1*50); %mm^3
+    pp_vol_2 = pi*(25.4/2)^2*pp_disp_2/(38.1*50); %mm^3
+    
+    figure(fig_num+3)
+    subplot(3,1,3)
+    plot(file_df.Time, (pp_vol-pp_vol(1))*10^3,'b')
+    hold on
+    plot(file_df.Time, (pp_vol_2-pp_vol_2(1))*10^3 - ((pp_vol-pp_vol(1))*10^3),'r')
+    
+    if LVDT_num == 1
+        pp_chosen_disp = pp_disp; %- pp_disp_2;
+        pp_chosen_vol = pp_vol; %- pp_vol_2;
+
+    elseif LVDT_num ==2
+        pp_chosen_disp = pp_disp_2 - pp_disp;% - pp_disp;
+        pp_chosen_vol = pp_vol_2 - pp_vol;% - pp_vol;
+    end
+
+    if remove_longterm_trend == true
+        pf = polyfit(file_df.Time, pp_chosen_vol, 8);
+        longterm_fit = polyval(pf, file_df.Time);
+    end
+
+    subplot(3,1,1)
+    plot(file_df.Time, (pp_chosen_vol - pp_chosen_vol(1))*10^3, 'Color', col)
+    hold on
+    plot(file_df.Time, (longterm_fit - longterm_fit(1))*10^3, 'Color', col)
+    subplot(3,1,2)
+    plot(file_df.LoadingPlattenDispHighGain, (pp_chosen_vol - pp_chosen_vol(1))*10^3, 'Color', col)
+    hold on
+    subplot(3,1,3)
+    plot(file_df.Time, (pp_chosen_vol - pp_chosen_vol(1))*10^3, 'b')
+
+    for i = 1:length(hold_picks.start_hold_T)
+        if hold_picks.end_hold_T(i) - hold_picks.start_hold_T(i) < 100
+            continue
+        else
+            hold_indices = (file_df.Time > hold_picks.start_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i));
+            disp_hold_indices = (file_df.Time > hold_picks.start_hold_T(i)-10 & file_df.Time < hold_picks.end_hold_T(i)+10);
+            first_index = find(hold_indices, 1, 'first');
+    
+            pf = polyfit((file_df.Time(hold_indices)-file_df.Time(first_index)), (pp_chosen_vol(hold_indices)-pp_chosen_vol(first_index))*10^3,3);
+            pp_fit = polyval(pf, (file_df.Time(hold_indices)-file_df.Time(first_index)));
+    
+            figure(fig_num)
+            subplot(1,4,1)
+            semilogx(file_df.Time(hold_indices)-file_df.Time(first_index), (file_df.LVDT3(hold_indices)-file_df.LVDT3(first_index))*10^3)
+            hold on
+            subplot(1,4,2)
+            semilogx((file_df.Time(hold_indices)-file_df.Time(first_index)), pp_fit)
+            hold on
+            subplot(1,4,3)
+            semilogx(file_df.Time(hold_indices)-file_df.Time(first_index), -(pp_chosen_vol(hold_indices)-pp_chosen_vol(first_index))*10^3)
+            hold on
+            subplot(1,4,4)
+            plot(file_df.LoadingPlattenDispHighGain(disp_hold_indices)-file_df.LoadingPlattenDispHighGain(first_index), -(pp_chosen_vol(disp_hold_indices)-pp_chosen_vol(first_index))*10^3)
+            hold on
+        end
+    end
+
+    figure(fig_num)
+    subplot(1,4,1)
+    xlabel('Time (s)')
+    ylabel('LVDT3 (μm)')
+    subplot(1,4,2)
+    xlabel('Time')
+    ylabel('Modeled Compaction from Pore Pressure Intensifier (μm)')
+    subplot(1,4,3)
+    xlabel('Time (s)')
+    ylabel('Compaction from Pore Pressure Intensifier (μm)')
+    title(title_text)
+    %savefig(["UC" + exp_num + "_onboardLVDTS.fig"])
+    %saveas(gcf,["UC" + exp_num + "_onboardLVDTS.jpg"])
+    hold off
+
+    for i = 1:length(hold_picks.start_hold_T)
+        if hold_picks.end_hold_T(i) - hold_picks.start_hold_T(i) < 100
+            continue
+        else
+            hold_indices = (file_df.Time > hold_picks.start_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i));
+            first_indices = find(hold_indices, 30, 'first');
+            last_indices = find(hold_indices, 30, 'last');
+            first_index = find(hold_indices, 1, 'first');
+            last_index = find(hold_indices, 1, 'last');
+   
+    
+            figure(fig_num+1)
+            subplot(1,2,1)
+            semilogx((file_df.Time(last_index)-file_df.Time(first_index)), (file_df.LVDT3(last_index)-file_df.LVDT3(first_index))*10^3, 'o', 'MarkerFaceColor', col, 'MarkerEdgeColor', col)
+            hold on
+            subplot(1,2,2)
+            semilogx((file_df.Time(last_index)-file_df.Time(first_index)), -(mean(pp_chosen_vol(last_indices))-mean(pp_chosen_vol(first_indices)))*10^3, 'o', 'MarkerFaceColor', col, 'MarkerEdgeColor', col)
+            hold on
+        end
+    end
+    subplot(1,2,1)
+    xlabel('Time (s)')
+    ylabel('LVDT3 (μm)')
+    subplot(1,2,2)
+    xlabel('Time (s)')
+    ylabel('Compaction from Pore Pressure Intensifier (μm)')
+
+    figure()
+    plot(file_df.Time, file_df.PorePressure1,'b')
+    hold on
+    plot(file_df.Time, file_df.PorePressure2,'r')
+end

@@ -3,3 +3,4 @@ function [file_df] = readUCSCtriax(file_name)
     opts.DataLines = 36;
     opts.VariableNamesLine = 34;
     file_df = readtable(file_name, opts);
+    file_df.OG_Index = [1:length(file_df.Time)]';
