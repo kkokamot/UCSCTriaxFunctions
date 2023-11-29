@@ -14,8 +14,6 @@ The function **readUCSCtriax** reads in autolab data as a matlab table (ignores 
 
 **find_ss_and_max** creates a mat file of the post-hold steady state values (in order to compare to pre-hold steady state) and the peak friction on the re-slide (in order to calculate healing). In orer to use this, you must have already used find_holds.
 
-**plot_overlapping_holds** uses the mat file from find_holds to plot the decay curve for all the holds both in linear space and log(time) space
-In addition, there are lots of other plotting scripts.
 
 Finally, **create_table_RSFit_VS** adds RSFit3000 aging law and slip law fits from multiple experiments into one table.
 
