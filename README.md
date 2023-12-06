@@ -22,7 +22,7 @@ Typically, **readUCSCtriax** and **calc_mu_UCSC** are used for each experiment. 
                             test1 = readUCSCtriax('UC0001.csv');  
                             [test1_final, start_time, end_time] = calc_mu_UCSC(test1, 1, 'UC0001');
 
-To measure healing you can use these functions. I typically set auto_find_threshold ~1.4. If holds are not being found then you can lower the threshold or raise it if too few are found.
+To measure healing you can use these functions. I typically set auto_find_threshold ~1.4. If holds are not being found then you can lower the threshold or raise it if too many are found.
 
                             find_holds(test1, auto_find_threshold, figure_num, '[enter exp_name]')
                             find_ss_and_max(test1, "[enter exp_num]")
