@@ -33,7 +33,11 @@ function find_holds(file_df,acc_limit,fig_num, save_file)
     figure(fig_num)
     plot(file_df.Time, file_df.friction, T_hold, start_friction, 'o', T_end, end_friction, 'o')
     title('Cut Time')
-    ylim([0 1])
+    if max(file_df.friction) < 0.95
+        ylim([0 1])
+    else
+        ylim([0 max(file_df.friction+0.05)])
+    end
     [cut_t, ~] = ginput(2);
     T_hold_f = T_hold(T_hold < cut_t(2) & T_hold > cut_t(1));
     T_end_f = T_end(T_end<cut_t(2) & T_end > cut_t(1));

@@ -1,5 +1,5 @@
 %% Find Shear Stress for 45 or L or Off Sample
-function [MR_shear, MR_shear_dispcorr] = area_correction_ucsc(MR_load, Pc_load, angle, area)
+function [MR_shear, MR_shear_dispcorr, Pc_load_ac] = area_correction_ucsc(MR_load, Pc_load, angle, area)
     if angle == 'L' | angle == 90
         MR_force = (.0381/2)^(2)*pi*(MR_load); 
         %38.1mm diameter; length = ~48mm %2mm for indium block
@@ -15,5 +15,5 @@ function [MR_shear, MR_shear_dispcorr] = area_correction_ucsc(MR_load, Pc_load, 
         Pc_load_ac = Pc_force/(pi*1.732*1.5);
         MR_shear_dispcorr = (MR_force./area); %n/m^2 -> Pa
     else
-        print('Acceptable angle inputs: "L", 90, 45, "45"')
+        "Acceptable angle inputs: 'L', '90', '30'"
     end

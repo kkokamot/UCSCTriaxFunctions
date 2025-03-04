@@ -1,5 +1,5 @@
 %%
-function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
+function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name, file_path)
     %%%
     %%%
     reply = input('Was pore pressure used during the experiment? Y/N [Y]: ', 's');
@@ -20,15 +20,15 @@ function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
    % area = area(file_df.Time > start_time & file_df.Time < end_time);
 
     if reply == 'Y'
-        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress,90, area);
-        [shear_pac, ~] = area_correction_ucsc((file_df.AxialControlPressure - (file_df.ConfiningPressure/9.3))*(32.987/1.767), 90, area);
+        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress, NaN, 90, area);
+        [shear_pac, ~] = area_correction_ucsc((file_df.AxialControlPressure - (file_df.ConfiningPressure/9.3))*(32.987/1.767), NaN, 90, area);
         normalstress = ((file_df.PorePressure1 + file_df.PorePressure2)/2);
         friction = (shear)./(file_df.ConfiningPressure-normalstress);
         friction_pac = (shear_pac)./(file_df.ConfiningPressure - normalstress);
         friction_dc = (shear_dc)./(file_df.ConfiningPressure-normalstress);
     else
-        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress,90, area);
-        [shear_pac, ~] = area_correction_ucsc((file_df.AxialControlPressure - (file_df.ConfiningPressure/9.3))*(32.987/1.767), 90, area);
+        [shear, shear_dc] = area_correction_ucsc(file_df.DifferentialStress, NaN, 90, area);
+        [shear_pac, ~] = area_correction_ucsc((file_df.AxialControlPressure - (file_df.ConfiningPressure/9.3))*(32.987/1.767), NaN, 90, area);
         friction = (shear)./(file_df.ConfiningPressure);
         friction_pac = (shear_pac)./(file_df.ConfiningPressure);        
         friction_dc = (shear_dc)./(file_df.ConfiningPressure);
@@ -64,7 +64,7 @@ function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
 
     close(fig_number)
     f = figure(fig_number);
-    f.WindowState = 'maximized';    
+    %f.WindowState = 'maximized';    
     subplot(2,1,1)
     plot(file_df.LoadingPlattenDispHighGain, file_df.friction_dc, 'LineWidth', 1.5)
     hold on
@@ -97,15 +97,15 @@ function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
 
     % save file_df as a mat file
     try
-        save(save_name + '.mat', 'file_df')
+        save(file_path + save_name + '.mat', 'file_df')
     catch
         save_name = convertCharsToStrings(save_name);
-        save(save_name + '.mat', 'file_df')
+        save(file_path + save_name + '.mat', 'file_df')
     end
 
     % save final friction values figure
-    saveas(fig_number, save_name + '_correction_comparison.jpg')
-    savefig(save_name + '_correction_comparison.fig')
+    saveas(fig_number, file_path + save_name + '_correction_comparison.jpg')
+    savefig(file_path + save_name + '_correction_comparison.fig')
 
     disp_um = file_df.LoadingPlattenDispHighGain*10^3;
     fric = file_df.friction;
@@ -119,5 +119,5 @@ function [file_df, area] = calc_mu_UCSC(file_df, fig_number, save_name)
         normalstress_ave = file_df.ConfiningPressure;
     end
     time = file_df.Time;
-    save(save_name + '_RSFit.mat', 'disp_um', 'fric', 'normalstress_1', 'normalstress_2', 'normalstress_ave', 'time')
+    save(file_path + save_name + '_RSFit.mat', 'disp_um', 'fric', 'normalstress_1', 'normalstress_2', 'normalstress_ave', 'time')
 end

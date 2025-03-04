@@ -1,0 +1,115 @@
+function [pf1, pf2, pv1, pv2, LVDT1, LVDT2] = plot_onboardLVDTS(exp_num, title_text, fig_num, type, hold_time_string, col_value)
+    hold_picks = load("UC" + exp_num + "hold_picks.mat");
+    load("UC" + sprintf('%04d', exp_num) + ".mat");
+    %load("UC" + exp_num + "_stiffness.mat");
+    load("UC" + exp_num + "healing_picks.mat")
+    hold_picks.start_hold_T = file_df.Time(ismember(file_df.OG_Index, hold_picks.start_hold_index));
+    hold_picks.end_hold_T = file_df.Time(ismember(file_df.OG_Index, hold_picks.end_hold_index));
+    hold_picks.start_hold_disp = file_df.LoadingPlattenDispHighGain(ismember(file_df.OG_Index, hold_picks.start_hold_index));
+    hold_picks.end_hold_disp = file_df.LoadingPlattenDispHighGain(ismember(file_df.OG_Index, hold_picks.end_hold_index));
+    start_hold_mu = file_df.friction(ismember(file_df.OG_Index, hold_picks.start_hold_index));
+
+    try
+        eff_normal = mean(file_df.ConfiningPressure) - mean(file_df.PorePressure2);
+    catch
+        eff_normal = mean(file_df.ConfiningPressure);
+    end
+
+   %for i = 1:length(hold_picks.start_hold_T)
+   %    hold_indices = (file_df.Time > hold_picks.start_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i)+5);
+   %    first_index = find(hold_indices, 1, 'first');
+   %    figure(fig_num)
+   %    subplot(1,3,1)
+   %    plot(file_df.Time(hold_indices)-hold_picks.start_hold_T(i), file_df.LVDT1(hold_indices)-file_df.LVDT1(first_index))
+   %    hold on
+   %    subplot(1,3,2)
+   %    plot(file_df.Time(hold_indices)-hold_picks.start_hold_T(i),file_df.LVDT2(hold_indices)-file_df.LVDT2(first_index))
+   %    hold on
+   %    subplot(1,3,3)
+   %    plot(file_df.Time(hold_indices)-hold_picks.start_hold_T(i),file_df.LVDT3(hold_indices)-file_df.LVDT3(first_index))
+   %    hold on
+   %end
+    %file_df.vel_LVDT1 = [0,(diff(file_df.LVDT1)/0.1)']';
+    %file_df.vel_LVDT2 = [0,(diff(file_df.LVDT1)/0.1)']';
+    if hold_time_string ~= "all"
+        hold_times = round(hold_picks.end_hold_T - hold_picks.start_hold_T, 1, "significant");
+        indexes = find(hold_times == str2num(hold_time_string))';
+    elseif hold_time_string == "all"
+        hold_times = round(hold_picks.end_hold_T - hold_picks.start_hold_T, 1, "significant");
+        indexes = 1:length(hold_picks.start_hold_T);
+    end
+
+    for i = [indexes]
+        hold_indices = (file_df.Time > hold_picks.start_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i)+5);
+        truly_hold_indices = (file_df.Time > hold_picks.start_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i));
+        reload_indices = (file_df.Time > hold_picks.end_hold_T(i) & file_df.Time < hold_picks.end_hold_T(i) + 5);
+
+        first_index = find(hold_indices, 1, 'first');
+        last_index = hold_picks.end_hold_index(i);
+        %LVDT_ave = (file_df.LVDT1+file_df.LVDT2)/2;
+        LVDT_diff = file_df.LVDT2(file_df.OG_Index == last_index)-file_df.LVDT2(first_index);
+        pf1 = polyfit(file_df.LVDT1(truly_hold_indices) - file_df.LVDT1(first_index), file_df.shear(truly_hold_indices) - file_df.shear(first_index),1)
+        pf2 = polyfit(file_df.LVDT2(truly_hold_indices) - file_df.LVDT2(first_index), file_df.shear(truly_hold_indices) - file_df.shear(first_index),1)
+        fit1 = polyval(pf1, file_df.LVDT1(truly_hold_indices) - file_df.LVDT1(first_index));
+        fit2 = polyval(pf2, file_df.LVDT2(truly_hold_indices) - file_df.LVDT2(first_index));
+        %modeled = -mean(k_reload)*eff_normal*LVDT_diff; % delta_shear = normalized stiffnes * (V1-V0) * hold_time * eff_normal
+        LVDT1 = file_df.LVDT1(truly_hold_indices) - file_df.LVDT1(first_index);
+        LVDT2 = file_df.LVDT2(truly_hold_indices) - file_df.LVDT2(first_index);
+        figure(fig_num)
+        if type == "shear"
+            subplot(1,3,1)
+            plot(file_df.LVDT1(hold_indices)-file_df.LVDT1(first_index), file_df.shear(hold_indices)-file_df.shear(first_index), 'Color', col_value)
+            hold on
+            plot(LVDT1, fit1, '-','Color', col_value)
+            text(LVDT1(end), fit1(end), string(pf1(1)/10^3))
+            subplot(1,3,2)
+            plot(file_df.LVDT2(hold_indices)-file_df.LVDT2(first_index), file_df.shear(hold_indices)-file_df.shear(first_index), 'Color', col_value)
+            hold on
+            plot(LVDT2, fit2, '-','Color', col_value)
+            text(LVDT2(end), fit2(end), string(pf2(1)/10^3))
+            plot(file_df.LoadingPlattenDisplacementHighGain())
+            subplot(1,3,3)
+            plot(file_df.Time(hold_indices)-file_df.Time(first_index),file_df.LVDT3(hold_indices)-min(file_df.LVDT3(hold_indices)), 'Color', col_value)%'MarkerFaceColor', col_value,'MarkerEdgeColor', col_value)
+            hold on
+        elseif type == "friction"
+            subplot(1,3,1)
+            plot(file_df.LVDT1(hold_indices)-file_df.LVDT1(first_index), (file_df.friction(hold_indices)-file_df.friction(first_index)), 'Color', col_value)
+            hold on
+            subplot(1,3,2)
+            plot(file_df.LVDT2(hold_indices)-file_df.LVDT2(first_index), (file_df.friction(hold_indices)-file_df.friction(first_index)), 'Color', col_value)
+            hold on
+            subplot(1,3,3)
+            plot(file_df.Time(hold_indices)-file_df.Time(first_index),file_df.LVDT3(hold_indices)-file_df.LVDT3(first_index), 'Color', col_value)%'MarkerFaceColor', col_value,'MarkerEdgeColor', col_value)
+            hold on          
+        end
+    end
+
+    figure(fig_num)
+    if type == "shear"
+        subplot(1,3,1)
+        xlabel('LVDT1 Displacement (mm)')
+        ylabel('Shear Stress (MPa)')
+        subplot(1,3,2)
+        xlabel('LVDT2 Displacement (mm)')
+        ylabel('Shear Stress (MPa)')
+        subplot(1,3,3)
+        xlabel('Time')
+        ylabel('LVDT3 Displacement (mm)')
+        %xlabel('LVDT')
+        %ylabel('\Delta\mu_c')
+    elseif type == "friction"
+        subplot(1,3,1)
+        xlabel('LVDT1 Displacement (mm)')
+        ylabel('\mu')
+        subplot(1,3,2)
+        xlabel('LVDT2 Displacement (mm)')
+        ylabel('\mu')
+        subplot(1,3,3)
+        xlabel('Time')
+        ylabel('LVDT3 Displacement (mm)')
+    end
+    title(title_text)
+    %savefig(["UC" + exp_num + "_onboardLVDTS.fig"])
+    %saveas(gcf,["UC" + exp_num + "_onboardLVDTS.jpg"])
+    %hold off
+end

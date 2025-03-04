@@ -1,0 +1,65 @@
+function compute_k(exp_num)
+    close all 
+    check_for_previous = isfile("UC" + exp_num + "_stiffness.mat");
+    if check_for_previous == 1
+        check = input('There already exists a file with previously found steady state values. Do you want to continue? [N] ', 's');
+        if isempty(check)
+            check = 'N';
+        end
+        if check == 'N'
+            disp('Opened saved figure')
+            open("UC49_stiffness.fig")
+            return
+        end
+    end
+
+    % load hold and healing data
+    load("UC" + sprintf('%04d', exp_num) + ".mat");
+    load("UC" + exp_num + "hold_picks.mat");
+    load("UC" + exp_num + "healing_picks.mat");
+
+
+    % calculate loading stiffness
+    file_df.LoadingPlattenDispHighGain = file_df.LoadingPlattenDispHighGain - file_df.LoadingPlattenDispHighGain(1);
+    loadup_disp = file_df.LoadingPlattenDispHighGain(file_df.LoadingPlattenDispHighGain<2.0);
+    loadup_friction = file_df.friction(file_df.LoadingPlattenDispHighGain<2.0);
+    
+    l_fit_disp = loadup_disp(loadup_disp > 0.2 & loadup_disp < 0.3);
+    l_fit_friction = loadup_friction(loadup_disp > 0.2 & loadup_disp < 0.3);
+    pf = polyfit(l_fit_disp,l_fit_friction,1);
+    k_loadup_fit = polyval(pf,l_fit_disp);
+    k_loadup = pf(1);
+    k_l_start_index = file_df.OG_Index(file_df.LoadingPlattenDispHighGain == 0.2);
+    k_l_end_index = file_df.OG_Index(file_df.LoadingPlattenDispHighGain == 0.3);
+
+    %fit reload for stiffness
+    figure(1)
+    plot(file_df.LoadingPlattenDispHighGain, file_df.friction)
+    hold on
+    k_reload = zeros(1,length(heal_index));
+    k_r_start_index = zeros(1,length(heal_index));
+    k_r_end_index = zeros(1,length(heal_index));
+    for index = [1:length(heal_index)]
+        snip_disp = file_df.LoadingPlattenDispHighGain(file_df.OG_Index < heal_index(index) & file_df.OG_Index > end_hold_index(index));
+        snip_friction = file_df.friction(file_df.OG_Index < heal_index(index) & file_df.OG_Index > end_hold_index(index));
+        
+        start_cut = 10;
+        fit_disp = snip_disp(start_cut: start_cut + 30);
+        fit_fric = snip_friction(start_cut: start_cut + 30);
+        pf = polyfit(fit_disp, fit_fric, 1);
+        k_reload(index) = pf(1)/1000*file_df.ConfiningPressure);
+        pv = polyval(pf, fit_disp);
+        plot(fit_disp, pv, 'r-')
+        text(snip_disp(1), snip_friction(1), num2str(k_reload(index),2))
+        k_r_start_index(index) = heal_index(index) + start_cut;
+        k_r_end_index(index) = heal_index(index) + start_cut + 30;
+    end
+    plot(l_fit_disp, k_loadup_fit,'r-')
+    text(l_fit_disp(1), l_fit_friction(1), num2str(k_loadup,2))
+    xlabel('Displacement (\mum)')
+    ylabel('\mu')
+    title("UC" + sprintf('%04d', exp_num) + " Stiffness Results")
+    savefig("UC" + exp_num + "_stiffness.fig")
+    saveas(gcf,"UC" + exp_num + "_stiffness.jpg")
+    save("UC" + exp_num + "_stiffness.mat", 'k_loadup', 'k_l_start_index', 'k_l_end_index', 'k_reload', 'k_r_start_index', 'k_r_end_index')
+    hold off
