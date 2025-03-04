@@ -19,4 +19,4 @@ The function **readUCSCtriax** reads in autolab data as a matlab table (ignores 
 Typically, **readUCSCtriax** and **calc_mu_UCSC** are used for each experiment. For example: 
 
                             test1 = readUCSCtriax('UC0001.csv');  
-                            [test1_final]] = calc_mu_UCSC(test1, 1, 'UC0001');
+                            [test1_final] = calc_mu_UCSC(test1, 1, 'UC0001');
